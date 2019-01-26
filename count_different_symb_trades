@@ -1,0 +1,71 @@
+int countOrdersDifferentSymbHistMinus()
+{
+   int countDifferent = 0;
+   string symbols[];
+   int count_symbols[];
+   for (cnt = OrdersTotal() - 1; cnt >= 0; cnt--) {
+      OrderSelect(cnt, SELECT_BY_POS, MODE_TRADES);
+      string sym = OrderSymbol();
+      int count_hist_minus = countOrders(-1, true, sym, "hist_profit");
+      if(count_hist_minus > 0 && sym != "")
+      {
+         if(!checkExistsArrSymbol(sym, symbols)){
+            int count = ArraySize(symbols);
+            ArrayResize(symbols, count+1);
+            ArrayResize(count_symbols, count+1);
+            symbols[count-1]        = sym;
+            count_symbols[count-1]  = count_hist_minus;
+         }
+      }
+      //Print("count_hist_minus="+count_hist_minus+" arr_size=" + ArraySize(count_symbols));
+     //
+     
+   }
+   countDifferent = ArraySize(count_symbols);
+   return (countDifferent);
+}
+
+bool checkExistsArrSymbol(string s, string arr[])
+{
+   int count = ArraySize(arr);
+   if(count < 1) return (false);
+   for(int i = 0; i < count; i++){
+      if(s == arr[i]) return (true);
+   }
+}
+int countOrders(int order_type = -1, bool is_pending_orders = false, string s = "", string comment = "")
+{
+   int count = 0.0;
+   int find_comment = -1;
+   for (cnt = OrdersTotal() - 1; cnt >= 0; cnt--) {
+      find_comment = -1;
+      OrderSelect(cnt, SELECT_BY_POS, MODE_TRADES);
+      string ot_comment = OrderComment();
+      if(s == ""){
+         if (OrderSymbol() != Symbol()) continue;
+         if(comment != ""){
+            find_comment = StringFind(OrderComment(), comment, 0);
+            if(find_comment < 0) continue;
+         } 
+      }
+      if(s != ""){
+         if (OrderSymbol() != s) continue;
+         if(comment != ""){
+            find_comment = StringFind(OrderComment(), comment, 0);
+            if(find_comment < 0) continue;
+         } 
+      }
+      if(order_type < 0) {
+         count++;
+      } else {
+         int ot_c = OrderType();
+         int ot_p = getOrderType(ot_c);
+         if(!is_pending_orders){
+            if(ot_c == order_type) count++;
+         } else {
+            if(ot_p == order_type) count++;
+         }
+      }
+   }
+   return (count);
+}
